@@ -1,3 +1,5 @@
+import { Express } from 'express';
+
 type JwtPayload = {
   sub: string;
   email?: string;
@@ -9,11 +11,5 @@ type JwtPayload = {
 declare global {
   namespace Express {
     interface User extends JwtPayload {}
-    interface Request {
-      user?: User;
-    }
   }
 }
-
-export {};
-
