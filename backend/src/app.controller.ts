@@ -14,9 +14,9 @@ export class AppController {
   }
 
   @Get('user-test')
-	  @UseGuards(AccessTokenGuard)
-	  @ApiBearerAuth('access-token')
-	  testUser(@Req() req: Request) {
-      return `유저 이메일: ${req.user?.email}`;
-    }
+  @UseGuards(AccessTokenGuard)
+  @ApiBearerAuth('access-token')
+  testUser(@Req() req: Request) {
+    return `유저 이메일: ${req.user?.email}`;
+  }
 }
