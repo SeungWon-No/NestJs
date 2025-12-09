@@ -1,0 +1,114 @@
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Req,
+  UnauthorizedException,
+  UseGuards,
+} from '@nestjs/common';
+import { LecturesService } from './lectures.service';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
+import { AccessTokenGuard } from 'src/auth/guards/access-token.guard';
+import { CreateLectureDto } from './dto/create-lecture.dto';
+import { Lecture as LectureEntity } from 'src/_gen/prisma-class/lecture';
+import type { Request } from 'express';
+import { UpdateLectureDto } from './dto/update-lecture.dto';
+
+@ApiTags('개별 강의')
+@Controller('lectures')
+export class LecturesController {
+  constructor(private readonly lecturesService: LecturesService) {}
+
+  private getUserSub(req: Request) {
+    const sub = req.user?.sub;
+    if (!sub) {
+      throw new UnauthorizedException('인증 정보가 없습니다.');
+    }
+    return sub;
+  }
+
+  @Post('sections/:sectionId/lectures')
+  @UseGuards(AccessTokenGuard)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: '새 강의 생성' })
+  @ApiParam({ name: 'sectionId', description: '섹션 ID' })
+  @ApiBody({ type: CreateLectureDto })
+  @ApiOkResponse({
+    description: '강의 생성 성공',
+    type: LectureEntity,
+  })
+  create(
+    @Param('sectionId') sectionId: string,
+    @Body() createLectureDto: CreateLectureDto,
+    @Req() req: Request,
+  ) {
+    const userSub = this.getUserSub(req);
+    return this.lecturesService.create(
+      sectionId,
+      createLectureDto,
+      userSub,
+    );
+  }
+
+  @Get(':lectureId')
+  @UseGuards(AccessTokenGuard)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: '개별 강의 상세 정보' })
+  @ApiParam({ name: 'lectureId', description: '개별 강의 ID' })
+  @ApiOkResponse({
+    description: '개별 강의 상세 정보 조회',
+    type: LectureEntity,
+  })
+  findOne(@Param('lectureId') lectureId: string, @Req() req: Request) {
+    const userSub = this.getUserSub(req);
+    return this.lecturesService.findOne(lectureId, userSub);
+  }
+
+  @Patch(':lectureId')
+  @UseGuards(AccessTokenGuard)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: '개별 강의 수정' })
+  @ApiParam({ name: 'lectureId', description: '개별 강의 ID' })
+  @ApiBody({ type: UpdateLectureDto })
+  @ApiOkResponse({
+    description: '개별 강의 수정 성공',
+    type: LectureEntity,
+  })
+  update(
+    @Param('lectureId') lectureId: string,
+    @Body() updateLectureDto: UpdateLectureDto,
+    @Req() req: Request,
+  ) {
+    const userSub = this.getUserSub(req);
+    return this.lecturesService.update(
+      lectureId,
+      updateLectureDto,
+      userSub,
+    );
+  }
+
+  @Delete(':lectureId')
+  @UseGuards(AccessTokenGuard)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: '개별 강의 삭제' })
+  @ApiParam({ name: 'lectureId', description: '개별 강의 ID' })
+  @ApiOkResponse({
+    description: '개별 강의 삭제 성공',
+    type: LectureEntity,
+  })
+  delete(@Param('lectureId') lectureId: string, @Req() req: Request) {
+    const userSub = this.getUserSub(req);
+    return this.lecturesService.remove(lectureId, userSub);
+  }
+}
